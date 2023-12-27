@@ -1,0 +1,30 @@
+---
+
+- name: provisioning servers
+  hosts: all
+  become: yes
+  tasks:
+    - name: install multiple packages on centos
+      yum:
+        name: "{{item}}"
+        state: present
+      when: ansible_distribution == "CentOS"
+      loop:
+        - chrony
+        - wget
+        - zip
+        - unzip
+
+    - name: install ntp on ubuntu
+      apt:
+        name: ntp
+        state: present
+        update_cache: yes #run update first 
+      when: ansible_distribution == "Ubuntu"
+
+    - name: start service
+      service:
+        name: chronyd
+        state: started
+        enabled: yes
+      when: ansible_distribution == "CentOS"

@@ -1,0 +1,53 @@
+---
+
+- name: provisioning servers
+  hosts: all
+  become: yes
+  tasks:
+    - name: install multiple packages on centos
+      yum:
+        name: "{{item}}"
+        state: present
+      when: ansible_distribution == "CentOS"
+      loop:
+        - chrony
+        - wget
+        - zip
+        - unzip
+
+    - name: install ntp on ubuntu
+      apt:
+        name: ntp
+        state: present
+        update_cache: yes #run update first 
+      when: ansible_distribution == "Ubuntu"
+
+    - name: start service
+      service:
+        name: chronyd
+        state: started
+        enabled: yes
+      when: ansible_distribution == "CentOS"
+
+    - name: Comy inline content
+      copy:
+        content: '# This server is managed by ansible'
+        dest: /etc/motd
+
+    - name: Deploy ntp agent conf on centos
+      template:
+        src: templates/ntpconf_centos
+        dest: /etc/chrony.conf
+        backup: yes
+      when: ansible_distribution == "CentOS"
+      notify:
+        - reStart service on centos
+
+  handlers:
+    - name: reStart service on centos
+      service:
+        name: chronyd
+        state: restarted
+        enabled: yes
+      when: ansible_distribution == "CentOS"
+

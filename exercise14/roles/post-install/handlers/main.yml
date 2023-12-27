@@ -1,0 +1,10 @@
+---
+# handlers file for post-install
+handlers:
+  - name: reStart service on centos
+    service:
+      name: chronyd
+      state: restarted
+      enabled: yes
+    when: ansible_distribution == "CentOS"
+
